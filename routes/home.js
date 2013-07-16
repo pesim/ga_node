@@ -1,17 +1,12 @@
+var nconf = require('nconf');
+
 module.exports = function (app) {
-
-    // home page
+    app.get('/auth_info.js', function (req, res) {
+        res.write('it works');
+        //res.write('var clientId= \'' + nconf.get('ga').consumerKey + '\';\n');
+        //        res.write('var apiKey= \'' + nconf.get('ga').consumerSecret + '\';\n');
+    });
     app.get('/', function (req, res) {
-        res.render('index', { title: 'Home Page.  ' })
-    });
-
-    // chat area
-    app.get('/chat', function (req, res) {
-        res.render('chat', { title: 'Chat with Me!  ' })
-    });
-
-    // about page
-    app.get('/about', function (req, res) {
-        res.render('about', { title: 'About Me.  ' })
+        res.render('index', { title: 'Main page' })
     });
 }
