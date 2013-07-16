@@ -23,13 +23,14 @@ html
         ol.round
           li.one
             label Start Date
-            input#start-date.c2
+            input#start-date
           li.two
             label End Date
-            input#end-date.c2
+            input#end-date
       button#execute(style="display:none;") Exec
       div#output
 
-      script(src='auth_util.js')
+      script(src='/javascripts/auth_util.js')
       script(src='/auth_info.js')
+      script(src='/javascripts/core.js')
       script(src='https://apis.google.com/js/client.js?onload=handleClientLoad')
