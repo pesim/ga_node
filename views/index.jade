@@ -12,6 +12,7 @@ html
     // include default scripts and any view scripts
     script(src='/javascripts/jquery-1.8.3.min.js')
     script(src='/javascripts/modernizr.js')
+    script(src='/javascripts/Chart.min.js')
     
   body   
     section(class="featured")
@@ -27,10 +28,21 @@ html
           li.two
             label End Date
             input#end-date
+          li.three
+            label Server ID
+            input#server-id
       button#execute(style="display:none;") Exec
       div#output
 
       script(src='/javascripts/auth_util.js')
       script(src='/auth_info.js')
+      script(src='/bill_products.js')
+      script(src='/bill_product_items.js')
+      script(src='/service_item.js')
       script(src='/javascripts/core.js')
       script(src='https://apis.google.com/js/client.js?onload=handleClientLoad')
+
+      br
+      canvas#chtProduct(width="1024",height="600")
+      br
+      canvas#chtItem(width="1024",height="600")

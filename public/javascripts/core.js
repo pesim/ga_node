@@ -31,15 +31,23 @@ $('#end-date').val(lastNDays(0));
  * Anaytics client library must be loaded before this function is called.
  */
 function makeApiCall() {
-  gapi.client.analytics.data.ga.get({
-    'ids': 'ga:65348039',
-    'start-date': document.getElementById('start-date').value,
-    'end-date': document.getElementById('end-date').value,
-    'metrics': 'ga:visitors,ga:totalEvents',
-    'dimensions': 'ga:eventAction',
-    'sort': '-ga:totalEvents',
-    'max-results': 25
-  }).execute(handleCoreReportingResults);
+    var ga_option = {
+        'ids': 'ga:65348039',
+        'start-date': document.getElementById('start-date').value,
+        'end-date': document.getElementById('end-date').value,
+        'metrics': 'ga:totalEvents',
+        'dimensions': 'ga:eventAction',
+        'sort': '-ga:totalEvents',
+        'filters': 'ga:eventCategory==purchase',
+        'max-results': 25
+    };
+    var server_id = document.getElementById('server-id').value;
+    if (server_id)
+    {
+        console.log('server id = ' + server_id);
+        ga_option.filters += ';ga:customVarValue1==' + server_id;
+    }
+  gapi.client.analytics.data.ga.get(ga_option).execute(handleCoreReportingResults);
 }
 
 
@@ -52,6 +60,95 @@ function makeApiCall() {
 function handleCoreReportingResults(results) {
   if (!results.code) {
     console.log(JSON.stringify(results));
+    var data = {
+      labels : 
+      [
+      ],
+      datasets : [
+        {
+          fillColor : "rgba(220,220,220,0.5)",
+          strokeColor : "rgba(220,220,220,1)",
+          data : 
+          [
+          ]
+        }
+      ]
+    };
+
+    var max_events = 0;
+    var items = new Array();
+    for (var k = 0; k < bill_product_items.length; ++k)
+    {
+        items[bill_product_items[k].item_id] = 0;
+    }
+
+    for (var i = 0; i < results.rows.length; ++i)
+    {
+        data.labels[i] = results.rows[i][0];
+        data.datasets[0].data[i] = results.rows[i][1];
+        if (max_events < parseInt(data.datasets[0].data[i])) {
+            max_events = parseInt(data.datasets[0].data[i]);
+        }
+
+        for (var j = 0; j < bill_products.length; ++j)
+        {
+            if (bill_products[j].product_id != results.rows[i][0]) continue;
+
+            data.labels[i] += ' (' + bill_products[j].title + ')';
+            for (var k = 0; k < bill_product_items.length; ++k)
+            {
+                if (bill_products[j].product_id != bill_product_items[k].product_id) continue;
+
+                items[bill_product_items[k].item_id] += bill_product_items[k].count * parseInt(data.datasets[0].data[i]);
+            }
+            break;
+        }
+    }
+    max_events = (Math.floor(max_events/1000)+1)*1000;
+    var ctx = document.getElementById("chtProduct").getContext("2d");
+    var ProductChart = new Chart(ctx).Bar(data, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events/10, scaleStartValue : 0 });
+
+    var data_item = {
+      labels : 
+      [
+      ],
+      datasets : [
+        {
+          fillColor : "rgba(220,220,220,0.5)",
+          strokeColor : "rgba(220,220,220,1)",
+          data : 
+          [
+          ]
+        }
+      ]
+    };
+    var index_item = 0;
+    var max_events_item = 0;
+    for (var item in items)
+    {
+        if (items[item] == 0) continue;
+
+        var item_label = item;
+        for (var item_id = 0; item_id < service_item.length; ++item_id)
+        {
+            if (service_item[item_id].serviceItemSN == parseInt(item))
+            {
+                item_label += ' (' + service_item[item_id].serviceItemName + ')';
+                break;
+            }
+        }
+
+        data_item.labels[index_item] = item_label;
+        data_item.datasets[0].data[index_item] = items[item];
+        if (max_events_item < parseInt(data_item.datasets[0].data[index_item])) {
+            max_events_item = parseInt(data_item.datasets[0].data[index_item]);
+        }
+        ++index_item;
+    }
+    max_events_item = (Math.floor(max_events_item/1000)+1)*1000;
+    var ctx_item = document.getElementById("chtItem").getContext("2d");
+    var ItemChart = new Chart(ctx_item).Bar(data_item, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events_item/10, scaleStartValue : 0 });
+
   } else {
     console.log('There was an error: ' + results.message);
   }
