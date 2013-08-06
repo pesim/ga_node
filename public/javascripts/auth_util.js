@@ -81,7 +81,8 @@ function handleAuthResult(authResult) {
  */
 function handleAuthorized() {
     $('#authorize-button').hide();
-    $('#execute').show().click(makeApiCall);
+    $('#product-execute').show().click(productApiCall);
+    $('#date-execute').show().click(dateApiCall);
 }
 
 
@@ -93,7 +94,8 @@ function handleAuthorized() {
  */
 function handleUnauthorized() {
     $('#authorize-button').show().click(handleAuthClick);
-    $('#execute').hide();
+    $('#product-execute').hide();
+    $('#date-execute').hide();
 }
 
 
