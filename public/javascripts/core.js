@@ -23,7 +23,7 @@
 // Initialize the UI Dates.
 $('#product-start-date').val(lastNDays(14));
 $('#product-end-date').val(lastNDays(0));
-$('#product-max-results').val(20);
+$('#product-max-results').val(10);
 
 $('#date-start-date').val(lastNDays(14));
 $('#date-end-date').val(lastNDays(0));
@@ -136,6 +136,7 @@ function handleProductApiCallResults2(results)
 
     var index = 0;
     var max_events = 0;
+    var server_category = 0;
     for (var i = 0; i < ga_product_results.rows.length; ++i)
     {
         var count = parseInt(ga_product_results.rows[i][1]);
@@ -161,13 +162,29 @@ function handleProductApiCallResults2(results)
             if (bill_products[j].product_id != ga_product_results.rows[i][0]) continue;
 
             data.labels[index] += ' (' + bill_products[j].title + ')';
+            if (parseInt(bill_products[j].gameid) < 10000)
+            {
+                data.labels[index] += " - p2p";
+                server_category = 1;
+            }
+            else
+            {
+                data.labels[index] += " - f2p";
+                server_category = 2;
+            }
             for (var k = 0; k < bill_product_items.length; ++k)
             {
                 if (bill_products[j].product_id != bill_product_items[k].product_id) continue;
 
                 if (!items[bill_product_items[k].item_id])
-                    items[bill_product_items[k].item_id] = 0;
-                items[bill_product_items[k].item_id] += bill_product_items[k].count * count;
+                {
+                    items[bill_product_items[k].item_id] = new Array();
+                    items[bill_product_items[k].item_id][0] = 0;
+                    items[bill_product_items[k].item_id][1] = 0;
+                    items[bill_product_items[k].item_id][2] = 0;
+                }
+                items[bill_product_items[k].item_id][0] += bill_product_items[k].count * count;
+                items[bill_product_items[k].item_id][server_category] += bill_product_items[k].count * count;
             }
             break;
         }
@@ -189,6 +206,16 @@ function handleProductApiCallResults2(results)
                 fillColor : "rgba(220,220,220,0.5)",
                 strokeColor : "rgba(220,220,220,1)",
                 data : []
+            },
+            {
+                fillColor : "rgba(151,187,205,0.5)",
+                strokeColor : "rgba(151,187,205,1)",
+                data : []
+            },
+            {
+                fillColor : "rgba(205,187,151,0.5)",
+                strokeColor : "rgba(205,187,151,1)",
+                data : []
             }
         ]
     };
@@ -196,7 +223,7 @@ function handleProductApiCallResults2(results)
     var max_events_item = 0;
     for (var item in items)
     {
-        if (items[item] == 0) continue;
+        if (items[item][0] == 0) continue;
 
         var item_label = item;
         for (var item_id = 0; item_id < service_item.length; ++item_id)
@@ -207,12 +234,14 @@ function handleProductApiCallResults2(results)
                 break;
             }
         }
-
         data_item.labels[index_item] = item_label;
-        data_item.datasets[0].data[index_item] = items[item];
-        if (max_events_item < parseInt(data_item.datasets[0].data[index_item])) {
-            max_events_item = parseInt(data_item.datasets[0].data[index_item]);
+
+        for (var c = 0; c < 3; ++c)
+        {
+            data_item.datasets[c].data[index_item] = items[item][c];
         }
+        if (max_events_item < parseInt(data_item.datasets[0].data[index_item]))
+            max_events_item = parseInt(data_item.datasets[0].data[index_item]);
         ++index_item;
     }
     if (document.getElementById('product-max-items-scale').value)

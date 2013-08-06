@@ -11,7 +11,7 @@ module.exports = function (app) {
             'var apiKey= \'' + nconf.get('ga').consumerSecret + '\';\n');
     });
     app.get('/bill_products.js', function (req, res) {
-        sql.query(nconf.get('ga').product_db_conn_str, "SELECT product_id, title FROM dbo.bill_products", function (err, data) {
+        sql.query(nconf.get('ga').product_db_conn_str, "SELECT product_id, title, gameid FROM dbo.bill_products", function (err, data) {
             if (err) {
                 console.log("error : " + err);
                 res.statusCode = 404;
