@@ -1,5 +1,6 @@
 var nconf = require('nconf');
 var sql = require('msnodesql');
+var http = require('http');
 
 module.exports = function (app) {
     app.get('/main', function (req, res) {
@@ -45,5 +46,27 @@ module.exports = function (app) {
                 res.send('var service_item = ' + JSON.stringify(data) + ';\n');
             }
         });
+    });
+    app.get('/serverlist.xml', function (req, res) {
+        var options = {
+            hostname: 'tera.omg.com.tw',
+            port: 80,
+            path: '/StatGame/GetServerList.ashx',
+            method: 'GET'
+        };
+        http.request(options, function (sls_res) {
+            sls_res.setEncoding('utf8');
+            var body = '';
+            sls_res.on('data', function (chunk) {
+                body += chunk;
+            });
+            sls_res.on('end', function () {
+                res.set('Content-Type', 'text/xml; charset=utf-8');
+                res.send(body);
+            });
+            sls_res.on('error', function(e) {
+                console.log('serverlist.xml failed : ' + e.message);
+            });
+        }).end();
     });
 }

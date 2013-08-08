@@ -28,26 +28,52 @@ $('#product-max-results').val(10);
 $('#date-start-date').val(lastNDays(14));
 $('#date-end-date').val(lastNDays(0));
 
-/**
- * Executes a Core Reporting API query to retrieve the top 25 organic search
- * terms. Once complete, handleCoreReportingResults is executed. Note: A user
- * must have gone through the Google APIs authorization routine and the Google
- * Anaytics client library must be loaded before this function is called.
- */
-/*
-function day_and_count()
-{
-    var days = (Date.parse(document.getElementById('end-date').value) - Date.parse(document.getElementById('start-date').value)) / (1000 * 60 * 60 * 24);
-    console.log('days : ' + days);
-
-    var max_results = bill_products.length * days;
-    console.log('max_results : ' + max_results);
-
-    return [days, max_results];
+if (window.XMLHttpRequest)
+{// code for IE7+, Firefox, Chrome, Opera, Safari
+  xmlhttp=new XMLHttpRequest();
 }
-*/
-function productApiCall()
+else
+{// code for IE6, IE5
+  xmlhttp=new ActiveXObject('Microsoft.XMLHTTP');
+}
+xmlhttp.open('GET','/serverlist.xml',false);
+xmlhttp.send();
+xmlDoc=xmlhttp.responseXML;
+var servers = xmlDoc.getElementsByTagName('server');
+var server_list = new Array();
+for (var i = 0; i < servers.length; ++i)
 {
+    server_list[parseInt(servers[i].getElementsByTagName('id')[0].childNodes[0].nodeValue)] = servers[i].getElementsByTagName('name')[0].attributes.getNamedItem('raw_name').value;
+}
+SetServerSelect(document.getElementById('product-server-id'));
+SetServerSelect(document.getElementById('date-server-id'));
+
+function SetServerSelect(select_object)
+{
+    var option=document.createElement('option');
+    option.value = 0;
+    option.text = 'All Servers';
+    select_object.add(option, null);
+    for (var server in server_list)
+    {
+        option=document.createElement('option');
+        option.value = server;
+        option.text = server_list[server];
+        if (server < 10000)
+            option.text += ' (p2p)';
+        else
+            option.text += ' (f2p)';
+        select_object.add(option, null);
+    }
+}
+/**
+* Executes a Core Reporting API query to retrieve the top 25 organic search
+* terms. Once complete, handleCoreReportingResults is executed. Note: A user
+* must have gone through the Google APIs authorization routine and the Google
+* Anaytics client library must be loaded before this function is called.
+*/
+
+function productApiCall() {
     $('#product-output').show();
 
     var ga_option =
@@ -59,10 +85,10 @@ function productApiCall()
         'dimensions': 'ga:eventAction',
         'sort': '-ga:totalEvents',
         'filters': 'ga:eventCategory==purchase',
-        'max-results' : document.getElementById('product-max-results').value
+        'max-results': document.getElementById('product-max-results').value
     };
     var server_id = document.getElementById('product-server-id').value;
-    if (server_id)
+    if (server_id && server_id != 0)
     {
         console.log('server id = ' + server_id);
         ga_option.filters += ';ga:customVarValue1==' + server_id;
@@ -103,7 +129,7 @@ function productApiCall2()
         'max-results' : document.getElementById('product-max-results').value
     };
     var server_id = document.getElementById('product-server-id').value;
-    if (server_id)
+    if (server_id && server_id != 0)
     {
         console.log('server id = ' + server_id);
         ga_option.filters += ';ga:customVarValue1==' + server_id;
@@ -195,7 +221,7 @@ function handleProductApiCallResults2(results)
     else
         max_events = (Math.floor(max_events/1000)+1)*1000;
     var ctx = document.getElementById("chtProduct").getContext("2d");
-    var ProductChart = new Chart(ctx).Bar(data, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events/10, scaleStartValue : 0 });
+    var ProductChart = new Chart(ctx).Bar(data, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events/10, scaleStartValue : 0, animation : false });
 
     var data_item =
     {
@@ -249,7 +275,7 @@ function handleProductApiCallResults2(results)
     else
         max_events_item = (Math.floor(max_events_item/1000)+1)*1000;
     var ctx_item = document.getElementById("chtItem").getContext("2d");
-    var ItemChart = new Chart(ctx_item).Bar(data_item, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events_item/10, scaleStartValue : 0 });
+    var ItemChart = new Chart(ctx_item).Bar(data_item, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events_item/10, scaleStartValue : 0, animation : false });
 }
 
 function dateApiCall()
@@ -267,7 +293,7 @@ function dateApiCall()
         'filters': 'ga:eventCategory==purchase'
     };
     var server_id = document.getElementById('date-server-id').value;
-    if (server_id)
+    if (server_id && server_id != 0)
     {
         console.log('server id = ' + server_id);
         ga_option.filters += ';ga:customVarValue1==' + server_id;
@@ -307,7 +333,7 @@ function dateApiCall2()
         'filters': 'ga:eventCategory==purchase;ga:eventLabel!~^$'
     };
     var server_id = document.getElementById('date-server-id').value;
-    if (server_id)
+    if (server_id && server_id != 0)
     {
         console.log('server id = ' + server_id);
         ga_option.filters += ';ga:customVarValue1==' + server_id;
@@ -392,7 +418,7 @@ function handleDateApiCallResults2(results)
     }
     max_events = (Math.floor(max_events/1000)+1)*1000;
     var ctx = document.getElementById("chtDate").getContext("2d");
-    var DateChart = new Chart(ctx).Line(data, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events/10, scaleStartValue : 0 });
+    var DateChart = new Chart(ctx).Line(data, {scaleOverlay : true, scaleOverride : true, scaleSteps : 10, scaleStepWidth : max_events/10, scaleStartValue : 0, animation : false });
 }
 /**
  * Utility method to return the lastNdays from today in the format yyyy-MM-dd.
